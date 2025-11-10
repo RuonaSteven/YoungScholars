@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { ArrowLeft, Heart, Download, Play } from 'lucide-react';
+import type { Book } from "../types";
 
-export const BookDetailsScreen = ({ book, onNavigate, onBack }) => {
+interface BookDetailsScreenProps {
+  book: Book | null;
+  onNavigate: (screen: 'reading' | 'home', book: Book) => void;
+  onBack: () => void;
+}
+
+export const BookDetailsScreen: React.FC<BookDetailsScreenProps> = ({ book, onNavigate, onBack }) => {
   const [isFavorited, setIsFavorited] = useState(false);
 
   if (!book) {
@@ -24,28 +31,30 @@ export const BookDetailsScreen = ({ book, onNavigate, onBack }) => {
     }
   };
 
+   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-linear-to-b from-purple-500 to-white px-6 py-8 pb-16">
       {/* Header with Back Button */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-8 rounded-b-3xl shadow-lg">
-        <div className="flex items-center justify-between">
+      <header className="bg-linear-to-r from-purple-500 to-pink-500 text-white px-6 py-8 rounded-b-3xl shadow-lg">
           <Button
             onClick={onBack}
             variant="ghost"
-            className="text-white hover:bg-white/20 p-3 rounded-full min-h-[48px] min-w-[48px]"
+            className="absolute left-4 top-3 flex items-center gap-2 bg-purple-600 text-white font-semibold px-4 py-1 rounded-full shadow-md border-2 border-purple-600 hover:bg-white hover:text-purple-600 transition active:scale-95"
           >
-            <ArrowLeft className="w-7 h-7" />
+            <ArrowLeft className="w-6 h-6" /> Back
           </Button>
           <h1 className="text-2xl font-bold">Book Details</h1>
-          <div className="w-12" /> {/* Spacer */}
-        </div>
-      </div>
-
+        </header>
+      
+      
       <div className="px-6 py-8">
         {/* Book Cover and Basic Info */}
         <Card className="bg-white rounded-3xl shadow-xl p-8 mb-8 border-2 border-gray-100">
           <div className="text-center mb-8">
-            <div className="w-40 h-48 bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200 rounded-3xl flex items-center justify-center text-7xl shadow-xl mx-auto mb-6">
+            <div className="w-40 h-48 bg-linear-to-br from-blue-200 via-purple-200 to-pink-200 rounded-3xl flex items-center justify-center text-7xl shadow-xl mx-auto mb-6">
               {book.cover}
             </div>
             <div className="flex items-center justify-center space-x-3 mb-3">
@@ -53,7 +62,7 @@ export const BookDetailsScreen = ({ book, onNavigate, onBack }) => {
               <Button
                 onClick={() => setIsFavorited(!isFavorited)}
                 variant="ghost"
-                className="p-2 rounded-full hover:bg-pink-100 min-h-[48px] min-w-[48px]"
+                className="p-2 rounded-full hover:bg-pink-100 min-h-12 min-w-12"
               >
                 <Heart
                   className={`w-7 h-7 transition-colors ${
@@ -75,7 +84,7 @@ export const BookDetailsScreen = ({ book, onNavigate, onBack }) => {
           </div>
 
           {/* Book Stats */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-6 mb-8">
+          <div className="bg-linear-to-r from-blue-50 to-purple-50 rounded-3xl p-6 mb-8">
             <div className="grid grid-cols-3 gap-6 text-center">
               <div>
                 <div className="text-3xl mb-2">📖</div>
@@ -96,7 +105,7 @@ export const BookDetailsScreen = ({ book, onNavigate, onBack }) => {
           <div className="space-y-4">
             <Button
               onClick={() => onNavigate('reading', book)}
-              className="w-full py-6 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-3xl shadow-xl transform transition-all duration-200 hover:scale-105 font-semibold text-xl min-h-[64px] active:scale-95"
+              className="w-full py-6 bg-linear-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-3xl shadow-xl transform transition-all duration-200 hover:scale-105 font-semibold text-xl min-h-12 active:scale-95"
             >
               <Play className="w-6 h-6 mr-3" />
               Read Now
@@ -104,7 +113,7 @@ export const BookDetailsScreen = ({ book, onNavigate, onBack }) => {
             
             <Button
               variant="outline"
-              className="w-full py-6 border-2 border-blue-400 text-blue-600 hover:bg-blue-50 rounded-3xl shadow-lg font-semibold text-xl min-h-[64px] active:scale-95"
+              className="w-full py-6 border-2 border-blue-400 text-blue-600 hover:bg-blue-50 rounded-3xl shadow-lg font-semibold text-xl min-h-12 active:scale-95"
             >
               <Download className="w-6 h-6 mr-3" />
               Download for Offline
@@ -121,8 +130,8 @@ export const BookDetailsScreen = ({ book, onNavigate, onBack }) => {
               { id: 102, title: 'Magical Kingdom', cover: '🏰' },
               { id: 103, title: 'Robot Friends', cover: '🤖' }
             ].map((similarBook) => (
-              <div key={similarBook.id} className="flex-shrink-0 text-center">
-                <div className="w-20 h-24 bg-gradient-to-br from-yellow-200 to-orange-200 rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-3">
+              <div key={similarBook.id} className="shrink-0 text-center">
+                <div className="w-20 h-24 bg-linear-to-br from-yellow-200 to-orange-200 rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-3">
                   {similarBook.cover}
                 </div>
                 <p className="text-sm text-gray-600 w-20 font-medium">{similarBook.title}</p>

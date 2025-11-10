@@ -1,4 +1,16 @@
 /*! tailwindcss v4.1.3 | MIT License | https://tailwindcss.com */
+
+@import "tailwindcss/preflight";
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
+
+
+/* Your custom styles below */
+body {
+  @apply bg-white text-gray-900;
+}
+
+
 @layer properties {
   @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
     *, :before, :after, ::backdrop {

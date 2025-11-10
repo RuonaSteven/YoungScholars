@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import  Swal from "sweetalert2";
+import { showAlert } from "../utils/alertTheme";
 
 interface LoginScreenProps {
   onLoginSuccess: (userData: any) => void;
@@ -23,22 +24,37 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
     const savedUser = localStorage.getItem("youngScholarsUser");
 
     if (!savedUser) {
-      setError("No account found. Please sign up first.");
-      return;
-    }
+    Swal.fire({
+      title: "No Account Found",
+      text: "Please sign up first before logging in.",
+      icon: "warning",
+      confirmButtonText: "Okay",
+      confirmButtonColor: "#7c3aed",
+    });
 
     const userData = JSON.parse(savedUser);
-
-    if (email === userData.email && password === userData.password) {
-      setError("");
-      onLoginSuccess(userData);
-    } else {
-      setError("Invalid email or password.");
-    }
+ if (email === userData.email && password === userData.password) {
+    Swal.fire({
+      title: "Login Successful 🎉",
+      text: "Welcome back to Young Scholars!",
+      icon: "success",
+      confirmButtonText: "Continue",
+      confirmButtonColor: "#7c3aed",
+    }).then(() => onLoginSuccess(userData));
+  } else {
+    Swal.fire({
+      title: "Invalid Login",
+      text: "Your email or password is incorrect.",
+      icon: "error",
+      confirmButtonText: "Try Again",
+      confirmButtonColor: "#7c3aed",
+    });
+  }
+};
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-indigo-50 to-blue-100 p-6">
+    <div className="min-h-screen flex items-center justify-center `bg-gradient-to-b from-indigo-50 to-blue-100 p-6">
       <Card className="w-full max-w-md p-8 shadow-lg rounded-2xl bg-white/90">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold mb-2 text-gray-800">Welcome Back 👋</h2>
@@ -83,7 +99,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onBack
 
           <Button
             type="submit"
-            className="w-full py-3 mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition"
+            className="w-full py-3 mt-4 `bg-gradient-to-r` from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-600 hover:to-purple-700 active:scale-95 transition"
           >
             Login
           </Button>

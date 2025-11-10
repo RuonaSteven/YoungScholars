@@ -1,67 +1,61 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import type { Screen, User } from "../types"; // adjust path if needed
+import type { Screen, Parent } from "../types";
 import { OnboardingScreen } from "./OnboardingScreen";
 import { LoginScreen } from "./LoginScreen";
-import { useState, useEffect } from "react";
 
 type WelcomeScreenProps = {
-  onLogin: (user: User) => void; // ✅ simplified
+  onLogin: (user: Parent) => void;
   onNavigate: (screen: Screen, data?: any) => void;
 };
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onNavigate }) => {
   const [screen, setScreen] = useState<"welcome" | "onboarding" | "login" | "home">("welcome");
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Parent | null>(null);
 
-
-   const handleSignUp = () => {
-    setScreen("onboarding");
-  };
-
-  const handleLogin = () => {
-    setScreen("login");
-  };
+  const handleSignUp = () => onNavigate("onboarding");
+  const handleLogin = () => onNavigate("login");
 
   useEffect(() => {
-    const saved = localStorage.getItem("youngScholarsUser");
+    const saved = localStorage.getItem("youngScholarsParent");
     if (saved) setUser(JSON.parse(saved));
   }, []);
 
   if (screen === "onboarding") {
     return (
       <OnboardingScreen
-      onComplete={(userData) => {
-  const userWithId = { ...userData, id: Date.now() }; // 👈 give each user a unique id
-  setUser(userWithId);
-  localStorage.setItem("youngScholarsUser", JSON.stringify(userWithId));
-  setScreen("home");
-  alert(`Welcome, ${userData.firstName}!`);
-}}   
+        onComplete={(parentData) => {
+          const parentWithId = { ...parentData, id: Date.now() };
+          setUser(parentWithId);
+          localStorage.setItem("youngScholarsParent", JSON.stringify(parentWithId));
+          setScreen("home");
+          alert(`Welcome, ${parentData.email}!`);
+        }}
+        onBack={() => setScreen("welcome")}
       />
     );
   }
 
-   if (screen === "login") {
+  if (screen === "login") {
     return (
       <LoginScreen
-        onLoginSuccess={(userData) => {
-          setUser(userData);
+        onLoginSuccess={(parentData) => {
+          setUser(parentData);
           setScreen("home");
         }}
         onBack={() => setScreen("welcome")}
       />
     );
   }
+
   if (screen === "home" && user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-green-50">
-        <h1 className="text-2xl font-bold mb-4">Welcome, {user.firstName}!</h1>
-        <p className="mb-4 text-gray-600">You’re logged in as {user.role}.</p>
+        <h1 className="text-2xl font-bold mb-4">Welcome, {user.email}!</h1>
         <Button
           onClick={() => {
-            localStorage.removeItem("youngScholarsUser");
+            localStorage.removeItem("youngScholarsParent");
             setUser(null);
             setScreen("welcome");
           }}
@@ -72,32 +66,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onNavigat
     );
   }
 
-  // if (user) {
-  //   return (
-  //     <div className="flex flex-col items-center justify-center min-h-screen bg-green-50">
-  //       <h1 className="text-2xl font-bold mb-4">Welcome Back, {user.name}!</h1>
-  //       <p className="mb-4 text-gray-600">You’re logged in as {user.role}.</p>
-  //       <Button
-  //         onClick={() => {
-  //           localStorage.removeItem("youngScholarsUser");
-  //           setUser(null);
-  //         }}
-  //       >
-  //         Log Out
-  //       </Button>
-  //     </div>
-  //   );
-  // }
-
-
-  // const handleLogin = () => {
-  //   onLogin({
-  //     name: "Alex",
-  //     id: 0
-  //   });
-  //   onNavigate("home");
-  // };
-
+  // Default welcome screen
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-8 py-12 bg-white-50 text-center">
       {/* Logo */}
@@ -125,18 +94,18 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onNavigat
       {/* Action Buttons */}
       <div className="w-full max-w-sm space-y-6 mb-8">
         <Button
-          variant="solid"
+          variant="gradient"
           onClick={handleSignUp}
-          className="w-full py-6 bg-gradient-to-r from-purple-500 hover:from-pink-600 hover:to-purple-600 text-white rounded-3xl shadow-xl text-xl font-semibold min-h-[56px] transition-all"
+          className="w-full py-6 bg-linear-to-r from-purple-500 to-purple-600 hover:from-purple-700 hover:to-purple-800 text-white rounded-3xl shadow-xl text-xl font-semibold min-h-14"
         >
+         
           Sign Up
         </Button>
 
-
         <Button
           onClick={handleLogin}
-          variant="solid"
-          className="w-full py-6 bg-gradient-to-r from-purple-500 hover:from-pink-600 hover:to-purple-600 text-white rounded-3xl shadow-xl text-xl font-semibold min-h-[56px] transition-all"
+          variant="gradient"
+          className="w-full py-6 bg-linear-to-r from-purple-500 to-purple-600 hover:from-purple-700 hover:to-purple-800 text-white rounded-3xl shadow-xl text-xl font-semibold min-h-14"
         >
           Log In
         </Button>
@@ -158,5 +127,3 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onNavigat
     </div>
   );
 };
-
-
