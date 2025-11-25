@@ -184,13 +184,16 @@
 // };
 
   import React, { useState, useEffect } from "react";
-  import { Book as BookIcon, BookOpen, Clock, Home, Trophy, User, Badge } from "lucide-react";
-  import type { Child, Book, Screen, Category } from "../types";
+  import { BottomNavScreen } from "./BottomNav";
+  import { Book as BookIcon, BookOpen, Clock, Home, Trophy, User, Badge as BadgeIcon} from "lucide-react";
+  import type { Child, Book, Screen, Category, Badge } from "../types";
   import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
   import { Button } from "./ui/button";
   import { Card, CardContent } from "./ui/card";
   import { getNextReadingLevel } from "../utils/readingLevel";
   import { showAlert } from "../utils/alertTheme";
+  import { motion, AnimatePresence } from "framer-motion";
+
 
   interface HomeScreenProps {
   child: Child;
@@ -199,6 +202,7 @@
   onRead: (book: Book) => void;
   onSettings: () => void;
   onBack?: () => void;
+
 }
 
   export const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -208,6 +212,7 @@
     onRead,
     onSettings,
     onBack,
+  
   }) => {
     useEffect(() => {
       // scroll to top when screen mounts
@@ -216,7 +221,7 @@
 
      useEffect(() => {
     const booksRead = child.booksRead ?? 0;
-    const currentLevel = child.readingLevel ?? "Beginner";
+    const currentLevel = child.readingLevel ?? "Read-along";
     if (booksRead >= 5) {
       const newLevel = getNextReadingLevel(currentLevel);
       if (newLevel !== currentLevel) {
@@ -245,7 +250,12 @@
                 {/* Greeting row */}
                 <div className="flex items-center space-x-3">
                   <Avatar className="w-12 h-12 border-2 border-white rounded-full shadow-md">
-                    <AvatarImage src={child.avatar} alt={child.nickName || child.firstName} />
+                    <AvatarImage
+                      src={child.avatar && child.avatar.trim() !== "" ? child.avatar : undefined}
+                      alt={child.nickName || child.firstName}
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                    />
+
                     <AvatarFallback className="bg-white text-purple-700 text-lg font-bold flex items-center justify-center">
                       {(child.nickName || child.firstName)?.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -261,23 +271,77 @@
                 <p className="text-white text-xs mt-4 whitespace-nowrap mb-1">
                   <span className="font-semibold">Reading Level: </span>
                   <span className="bg-white text-purple-700 font-semibold px-2 py-0.5 rounded-full text-[0.7rem] sm:text-xs">
-                    {child.readingLevel ?? "Beginner"}
+                    {child.readingLevel ?? "Read-Along"}
                   </span>
                 </p>
                 </div>
                 </div>
               
 
-                {/* Latest Badge */}
-                <div className="flex items-center bg-purple-100 rounded-lg px-3 py-1.5 mt-1 shadow-sm">
-                  <span className="text-md mr-2">🏅</span>
-                  <div>
-                    <p className="text-xs text-gray-500">Latest Badge</p>
-                    <p className="font-semibold text-purple-700">
-                      {child.latestBadge ?? "No Badge Yet"}
-                    </p>
-                  </div>
-                </div>
+               {/* 🏅 Latest Badge Display
+                  <div className="mt-4">
+                    {child.latestBadge ? (
+                      <div
+                        className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-4 py-3 mt-4 shadow-lg backdrop-blur-sm"
+                        style={{ borderLeft: `6px solid ${child.latestBadge.color}` }}
+                      >
+                        <div
+                          className="text-3xl"
+                          style={{ color: child.latestBadge.color }}
+                        >
+                          {child.latestBadge.icon}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{child.latestBadge.title}</h3>
+                          <p className="text-sm opacity-80">{child.latestBadge.description}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-right rounded-2xl top-2 px-4 py-2 shadow-lg backdrop-blur-sm text-white text-sm">
+                        <p>No badge 🏅 </p>
+                      </div>
+                    )}
+                  </div> */}
+                  {/* 🏅 Latest Badge Display */}
+                    <div className="mt-4">
+                      <AnimatePresence mode="wait">
+                        {child.latestBadge ? (
+                          <motion.div
+                            key={child.latestBadge.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.4 }}
+                            className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-4 py-3 mt-4 shadow-lg backdrop-blur-sm"
+                            style={{ borderLeft: `6px solid ${child.latestBadge.color}` }}
+                          >
+                            <div
+                              className="text-3xl"
+                              style={{ color: child.latestBadge.color }}
+                            >
+                              {child.latestBadge.icon}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">{child.latestBadge.title}</h3>
+                              <p className="text-sm opacity-80">{child.latestBadge.description}</p>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="no-badge"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.4 }}
+                            className="flex items-center justify-center bg-white/10 border border-white/20 rounded-2xl px-4 py-3 mt-4 shadow-lg backdrop-blur-sm text-white"
+                          >
+                            <p>🏅 No badge? </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+
               </div>
             </header>
 
@@ -336,7 +400,7 @@
       <span className="font-bold text-sm text-purple-700">
         {child.booksRead ?? 0}
       </span>
-      <p className="text-gray-500 text-xs">Books Read</p>
+      <p className="text-gray-500 text-xs">Books Read 📚</p>
     </Card>
 
     {/* Streak */}
@@ -345,7 +409,7 @@
       <span className="font-bold text-sm text-purple-700">
         {child.streakDays ?? 0}d
       </span>
-      <p className="text-gray-500 text-xs">Streak</p>
+      <p className="text-gray-500 text-xs">Streak 🔥</p>
     </Card>
 
     {/* Reading Time */}
@@ -354,33 +418,15 @@
       <span className="font-bold text-sm text-purple-700">
         {child.totalReadingTime ?? "0h 0m"}
       </span>
-      <p className="text-gray-500 text-xs">Reading Time</p>
+      <p className="text-gray-500 text-xs">Reading Time ⏰</p>
     </Card>
   </div>
 </section>
 
 
-  
-
-        {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto shadow-lg bg-white border-t border-purple-100 py-3 flex justify-around text-gray-600">
-          <button className="flex flex-col items-center text-purple-600">
-            <Home size={24} />
-            <span className="text-xs mt-1 font-semibold">Home</span>
-          </button>
-          <button className="flex flex-col items-center">
-            <BookIcon size={24} />
-            <span className="text-xs mt-1">Books</span>
-          </button>
-          <button className="flex flex-col items-center">
-            <Trophy size={24} />
-            <span className="text-xs mt-1">Leaderboard</span>
-          </button>
-          <button className="flex flex-col items-center">
-            <User size={24} />
-            <span className="text-xs mt-1">Profile</span>
-          </button>
-        </nav>
+          {/* Bottom Navigation */}
+      <BottomNavScreen currentScreen="home" onNavigate={onNavigate} />
+          
       </div>
     );
   };

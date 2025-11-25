@@ -4,6 +4,9 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import type { Screen, Parent } from "../types";
 import { OnboardingScreen } from "./OnboardingScreen";
 import { LoginScreen } from "./LoginScreen";
+import { ChildSelectScreen } from "./ChildSelectScreen";
+import Swal from "sweetalert2";
+
 
 type WelcomeScreenProps = {
   onLogin: (user: Parent) => void;
@@ -11,7 +14,7 @@ type WelcomeScreenProps = {
 };
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onNavigate }) => {
-  const [screen, setScreen] = useState<"welcome" | "onboarding" | "login" | "home">("welcome");
+  const [screen, setScreen] = useState<"welcome" | "onboarding" | "login" | "home" | "childSelect">("welcome");
   const [user, setUser] = useState<Parent | null>(null);
 
   const handleSignUp = () => onNavigate("onboarding");
@@ -29,8 +32,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onNavigat
           const parentWithId = { ...parentData, id: Date.now() };
           setUser(parentWithId);
           localStorage.setItem("youngScholarsParent", JSON.stringify(parentWithId));
-          setScreen("home");
-          alert(`Welcome, ${parentData.email}!`);
+          setScreen("childSelect");
+          Swal.fire({
+            title: "🎉 Welcome!",
+            text: `Welcome, ${parentData.email}!`,
+            icon: "success",
+            confirmButtonText: "Continue",
+          });
+
         }}
         onBack={() => setScreen("welcome")}
       />
@@ -42,10 +51,15 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onNavigat
       <LoginScreen
         onLoginSuccess={(parentData) => {
           setUser(parentData);
-          setScreen("home");
-        }}
-        onBack={() => setScreen("welcome")}
-      />
+          setScreen("childSelect");
+        } }
+        onBack={() => setScreen("welcome")} onSignup={function (): void {
+          throw new Error("Function not implemented.");
+        } } onForgotPassword={function (): void {
+          throw new Error("Function not implemented.");
+        } } goToOnboarding={function (): void {
+          throw new Error("Function not implemented.");
+        } }      />
     );
   }
 
@@ -68,7 +82,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onNavigat
 
   // Default welcome screen
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-8 py-12 bg-white-50 text-center">
+    <div className="min-h-screen flex flex-col mx-auto items-center justify-center px-8 py-12 bg-white-50 text-center">
       {/* Logo */}
       <div className="mb-12">
         <div className="w-32 h-32 rounded-full flex items-center justify-center mb-6 mx-auto shadow-xl">

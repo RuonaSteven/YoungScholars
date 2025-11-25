@@ -9,7 +9,7 @@ interface BottomNavProps {
 }
 
 export const BottomNavScreen: React.FC<BottomNavProps> = ({ currentScreen, onNavigate, }) => (
-  <nav className="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto shadow-lg bg-white border-t border-purple-100 py-3 flex justify-around text-gray-600 z-50">
+  <nav className="fixed bottom-0 left-0 w-full shadow-lg bg-white border-t border-purple-100 py-3 flex justify-around text-gray-600 z-50">
     <button
       onClick={() => onNavigate("home")}
       className={`flex flex-col items-center ${
@@ -21,9 +21,9 @@ export const BottomNavScreen: React.FC<BottomNavProps> = ({ currentScreen, onNav
     </button>
 
     <button
-      onClick={() => onNavigate("books")}
+      onClick={() => onNavigate("storybooks")}
       className={`flex flex-col items-center ${
-        currentScreen === "books" ? "text-purple-600" : "text-gray-500"
+        currentScreen === "storybooks" ? "text-purple-600" : "text-gray-500"
       }`}
     >
       <BookIcon size={24} />

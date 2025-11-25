@@ -199,35 +199,188 @@
 //   );
 // };
 
-import React from "react";
-import { Home, Book, Trophy, User, Star } from "lucide-react";
+// import React from "react";
+// import { Home, ArrowLeft, Book, BookOpen, Clock, Trophy, User, Star } from "lucide-react";
+// import type { Screen, Parent, Child } from "../types";
+// import { getNextReadingLevel } from "../utils/readingLevel";
 
-export const ProfileScreen: React.FC = () => {
-  const child = {
-    firstName: "Christiana",
-    avatar: "/avatars/girl.png",
-    level: "Level 3 Reader",
-    booksRead: 18,
-    minutesRead: 1260,
-    streak: 7,
-    badges: [
-      { name: "Bookworm", icon: "📚", color: "bg-yellow-100 text-yellow-700" },
-      { name: "Early Bird", icon: "🌅", color: "bg-blue-100 text-blue-700" },
-      { name: "Streak Master", icon: "🔥", color: "bg-red-100 text-red-700" },
-    ],
-  };
+
+
+// export const ProfileScreen: React.FC = () => {
+//   const child = {
+//     firstName: "Christiana",
+//     avatar: "/avatars/girl.png",
+//     level: "Level 3 Reader",
+//     booksRead: 18,
+//     minutesRead: 1260,
+//     streak: 7,
+//     badges: [
+//       { name: "Bookworm", icon: "📚", color: "bg-yellow-100 text-yellow-700" },
+//       { name: "Early Bird", icon: "🌅", color: "bg-blue-100 text-blue-700" },
+//       { name: "Streak Master", icon: "🔥", color: "bg-red-100 text-red-700" },
+//     ],
+//   };
+
+//   return (
+//     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
+//       {/* Header */}
+//       <header className="bg-linear-to-r from-purple-500 to-purple-700 text-white p-6 rounded-b-3xl shadow-md flex flex-col items-center">
+//         <img
+//           src={child.avatar}
+//           alt="Avatar"
+//           className="w-20 h-20 rounded-full border-4 border-white shadow-lg mb-3"
+//         />
+//         <h1 className="text-2xl font-bold">{child.firstName}</h1>
+//         <p className="text-purple-100 text-sm">{child.level}</p>
+//         <button className="mt-3 px-4 py-2 bg-white text-purple-600 rounded-xl font-semibold shadow hover:scale-105 transition">
+//           Edit Profile
+//         </button>
+//       </header>
+
+//       {/* Reading Stats */}
+//       <section className="px-6 mt-8">
+//         <h2 className="text-xl font-semibold mb-3">Reading Stats</h2>
+//         <div className="grid grid-cols-3 gap-4 text-center">
+//           <div className="bg-white rounded-2xl shadow p-4">
+//             <h3 className="text-2xl font-bold text-purple-600">
+//               {child.booksRead}
+//             </h3>
+//             <p className="text-sm font-medium text-gray-500 mt-1">Books Read</p>
+//           </div>
+//           <div className="bg-white rounded-2xl shadow p-4">
+//             <h3 className="text-2xl font-bold text-purple-600">
+//               {child.minutesRead}
+//             </h3>
+//             <p className="text-sm font-medium text-gray-500 mt-1">Minutes</p>
+//           </div>
+//           <div className="bg-white rounded-2xl shadow p-4">
+//             <h3 className="text-2xl font-bold text-purple-600">
+//               {child.streak}🔥
+//             </h3>
+//             <p className="text-sm font-medium text-gray-500 mt-1">Day Streak</p>
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* Badges Section */}
+//       <section className="px-6 mt-8 mb-20">
+//         <h2 className="text-xl font-semibold mb-3">Badges & Achievements</h2>
+//         <div className="grid grid-cols-3 gap-4">
+//           {child.badges.map((badge) => (
+//             <div
+//               key={badge.name}
+//               className={`rounded-2xl p-4 shadow flex flex-col items-center ${badge.color}`}
+//             >
+//               <span className="text-3xl">{badge.icon}</span>
+//               <p className="text-sm font-semibold mt-2">{badge.name}</p>
+//             </div>
+//           ))}
+//         </div>
+//       </section>
+
+//       {/* Bottom Navigation */}
+//       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg py-3 flex justify-around text-gray-600">
+//         <button className="flex flex-col items-center">
+//           <Home size={24} />
+//           <span className="text-xs mt-1">Home</span>
+//         </button>
+//         <button className="flex flex-col items-center">
+//           <Book size={24} />
+//           <span className="text-xs mt-1">Books</span>
+//         </button>
+//         <button className="flex flex-col items-center">
+//           <Trophy size={24} />
+//           <span className="text-xs mt-1">Leaderboard</span>
+//         </button>
+//         <button className="flex flex-col items-center text-purple-600">
+//           <User size={24} />
+//           <span className="text-xs mt-1 font-semibold">Profile</span>
+//         </button>
+//       </nav>
+//     </div>
+//   );
+// };
+
+import React from "react";
+import {
+  Home,
+  ArrowLeft,
+  Book,
+  BookOpen,
+  Clock,
+  Trophy,
+  User,
+} from "lucide-react";
+import { Button } from "./ui/button";
+import type { Screen, Parent, Child, Badge } from "../types";
+import { getNextReadingLevel } from "../utils/readingLevel";
+
+interface ProfileScreenProps {
+  child: Child | null;
+  parent: Parent | null;
+  onLogin: (user: Parent) => void;
+  onNavigate: (screen: Screen, data?: any) => void;
+  onBack: () => void;
+  onLogout: () => void;
+}
+
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({
+  child,
+  parent,
+  onLogin,
+  onNavigate,
+  onBack,
+  onLogout,
+}) => {
+  if (!child)
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-gray-600">
+        <p>No child profile available.</p>
+        <button
+          onClick={onBack}
+          className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-xl shadow"
+        >
+          ← Back
+        </button>
+      </div>
+    );
+      const lockedBadges = [
+    { name: "Bookworm", icon: "📚" },
+    { name: "Streak Master", icon: "🔥" },
+    { name: "Early Bird", icon: "🌅" },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
       {/* Header */}
-      <header className="bg-linear-to-r from-purple-500 to-purple-700 text-white p-6 rounded-b-3xl shadow-md flex flex-col items-center">
+      <header className="bg-linear-to-r from-purple-500 to-purple-700 text-white p-6 rounded-b-3xl shadow-md flex flex-col items-center relative">
+       <Button
+        onClick={onBack}
+        variant="ghost"
+        className="absolute left-4 top-3 bg-purple-600 text-white font-semibold px-4 py-1 rounded-full shadow-md border-2 border-purple-600 hover:bg-white hover:text-purple-600 transition active:scale-95"
+      >
+        <ArrowLeft className="w-7 h-7" />
+        Back
+      </Button>
+
         <img
-          src={child.avatar}
+          src={
+            child.avatar ||
+            "https://cdn-icons-png.flaticon.com/512/706/706830.png"
+          }
           alt="Avatar"
-          className="w-20 h-20 rounded-full border-4 border-white shadow-lg mb-3"
+          className="w-24 h-24 rounded-full border-4 border-white shadow-lg mb-3"
         />
-        <h1 className="text-2xl font-bold">{child.firstName}</h1>
-        <p className="text-purple-100 text-sm">{child.level}</p>
+        <h1 className="text-2xl font-bold">
+          {child.nickName || `${child.firstName} ${child.lastName}`}
+        </h1>
+        <p className="text-purple-100 text-sm mt-1">
+          Reading Level: {child.readingLevel || "Beginner"} . Next:{" "}
+          {getNextReadingLevel(child.readingLevel)}
+        </p>
+        <p className="text-purple-200 text-xs">
+          Young Scholar since {child.joinedDate || "2025"}
+        </p>
         <button className="mt-3 px-4 py-2 bg-white text-purple-600 rounded-xl font-semibold shadow hover:scale-105 transition">
           Edit Profile
         </button>
@@ -238,58 +391,153 @@ export const ProfileScreen: React.FC = () => {
         <h2 className="text-xl font-semibold mb-3">Reading Stats</h2>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="bg-white rounded-2xl shadow p-4">
-            <h3 className="text-2xl font-bold text-purple-600">
-              {child.booksRead}
+            <BookOpen size={26} className="text-purple-600 mx-auto mb-1" />
+            <h3 className="text-xl font-bold text-purple-700">
+              {child.booksRead ?? 0} 📚
             </h3>
-            <p className="text-sm font-medium text-gray-500 mt-1">Books Read</p>
+            <p className="text-sm text-gray-500">Books Read</p>
           </div>
           <div className="bg-white rounded-2xl shadow p-4">
-            <h3 className="text-2xl font-bold text-purple-600">
-              {child.minutesRead}
+            <Trophy size={26} className="text-purple-600 mx-auto mb-1" />
+            <h3 className="text-xl font-bold text-purple-700">
+              {child.streakDays ?? 0}d 🔥
             </h3>
-            <p className="text-sm font-medium text-gray-500 mt-1">Minutes</p>
+            <p className="text-sm text-gray-500">Streak</p>
           </div>
           <div className="bg-white rounded-2xl shadow p-4">
-            <h3 className="text-2xl font-bold text-purple-600">
-              {child.streak}🔥
+            <Clock size={26} className="text-purple-600 mx-auto mb-1" />
+            <h3 className="text-xl font-bold text-purple-700">
+              {child.totalReadingTime || "0h 0m"} ⏰
             </h3>
-            <p className="text-sm font-medium text-gray-500 mt-1">Day Streak</p>
+            <p className="text-sm text-gray-500">
+              Reading Time
+            </p>
           </div>
+          
         </div>
       </section>
 
-      {/* Badges Section */}
-      <section className="px-6 mt-8 mb-20">
-        <h2 className="text-xl font-semibold mb-3">Badges & Achievements</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {child.badges.map((badge) => (
+      {/* Reading Progress */}
+      <section className="px-6 mt-8">
+        <h2 className="text-xl font-semibold mb-3">Reading Progress</h2>
+        <div className="bg-white rounded-2xl shadow p-5">
+          <div className="w-full bg-purple-100 h-3 rounded-full overflow-hidden mb-2">
             <div
-              key={badge.name}
-              className={`rounded-2xl p-4 shadow flex flex-col items-center ${badge.color}`}
+              className="bg-purple-600 h-3 transition-all"
+              style={{ width: `${child.overallProgress ?? 0}%` }}
+            />
+          </div>
+          <p className="text-sm text-gray-600">
+            {child.overallProgress ?? 0}% complete
+          </p>
+
+          {/* Current Book */}
+      {child.currentBook && (
+        <section className="px-6 mt-8">
+          <h2 className="text-xl font-semibold mb-3">Current Book</h2>
+          <div className="bg-white rounded-2xl shadow p-5">
+            <p className="text-gray-700 mb-4">{child.currentBook}</p>
+            <button
+              onClick={() => onNavigate("reading")}
+              className="w-full py-3 bg-linear-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-xl shadow hover:from-purple-600 hover:to-purple-700"
             >
-              <span className="text-3xl">{badge.icon}</span>
-              <p className="text-sm font-semibold mt-2">{badge.name}</p>
-            </div>
-          ))}
+              Continue Reading
+            </button>
+          </div>
+        </section>
+      )}
+
+
+          {child.progress &&
+            Object.entries(child.progress).map(([bookId, percent]) => (
+              <p key={bookId} className="text-gray-600 text-sm">
+                📘 Book {bookId}: {percent}%
+              </p>
+            ))}
         </div>
       </section>
+
+      {/* Favorite Books */}
+      {child.favoriteBooks && child.favoriteBooks.length > 0 && (
+        <section className="px-6 mt-8">
+          <h2 className="text-xl font-semibold mb-3">Favorite Books ❤️</h2>
+          <div className="bg-white rounded-2xl shadow p-5">
+            <ul className="space-y-2">
+              {child.favoriteBooks.map((book, i) => (
+                <li
+                  key={i}
+                  className="bg-purple-50 px-4 py-2 rounded-xl text-gray-700 font-medium"
+                >
+                  {book}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* Badges Section */}
+            {child.badges && child.badges.length > 0 && (
+          <section className="px-6 mt-8 mb-20">
+            <h2 className="text-xl font-semibold mb-3">Badges & Achievements</h2>
+            <div className="grid grid-cols-3 gap-4">
+              {child.badges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className={`rounded-2xl p-4 shadow flex flex-col items-center ${badge.color}`}
+                >
+                  <span className="text-3xl">{badge.icon}</span>
+                  <p className="text-sm font-semibold mt-2">{badge.title}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        
+
+
+
+      {/* Parent Info */}
+      {parent && (
+        <div className="bg-purple-100 p-4 rounded-xl text-center mx-6 mb-10">
+          <p className="text-gray-700 mb-2">
+            Managed by <strong>{parent.firstName} {parent.lastName}</strong>
+          </p>
+          <button
+            onClick={() => onNavigate("settings", parent)}
+            className="text-purple-700 font-semibold hover:underline"
+          >
+            Go to Parent Settings →
+          </button>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg py-3 flex justify-around text-gray-600">
-        <button className="flex flex-col items-center">
-          <Home size={24} />
+        <button
+          onClick={() => onNavigate("home")}
+          className="flex flex-col items-center hover:text-purple-600"
+        >
+          <Home size={22} />
           <span className="text-xs mt-1">Home</span>
         </button>
-        <button className="flex flex-col items-center">
-          <Book size={24} />
+        <button
+          onClick={() => onNavigate("books")}
+          className="flex flex-col items-center hover:text-purple-600"
+        >
+          <Book size={22} />
           <span className="text-xs mt-1">Books</span>
         </button>
-        <button className="flex flex-col items-center">
-          <Trophy size={24} />
+        <button
+          onClick={() => onNavigate("leaderboard")}
+          className="flex flex-col items-center hover:text-purple-600"
+        >
+          <Trophy size={22} />
           <span className="text-xs mt-1">Leaderboard</span>
         </button>
         <button className="flex flex-col items-center text-purple-600">
-          <User size={24} />
+          <User size={22} />
           <span className="text-xs mt-1 font-semibold">Profile</span>
         </button>
       </nav>

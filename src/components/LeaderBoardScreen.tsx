@@ -1,42 +1,113 @@
 import React from "react";
-import { Home, Book, Trophy, User } from "lucide-react";
+import { Trophy } from "lucide-react";
+import type { Child, Screen, } from "../types";
+import { BottomNavScreen } from "./BottomNav";
 
-export const LeaderboardScreen: React.FC = () => {
-  const leaderboard = [
-    {
-      rank: 1,
-      name: "Christiana",
-      avatar: "/avatars/girl.png",
-      points: 1450,
-      badge: "🥇",
-    },
-    {
-      rank: 2,
-      name: "Daniel",
-      avatar: "/avatars/boy1.png",
-      points: 1320,
-      badge: "🥈",
-    },
-    {
-      rank: 3,
-      name: "Aisha",
-      avatar: "/avatars/girl2.png",
-      points: 1210,
-      badge: "🥉",
-    },
-    {
-      rank: 4,
-      name: "Emeka",
-      avatar: "/avatars/boy2.png",
-      points: 990,
-    },
-    {
-      rank: 5,
-      name: "Zainab",
-      avatar: "/avatars/girl3.png",
-      points: 870,
-    },
-  ];
+interface LeaderboardScreenProps {
+  onNavigate: (screen: Screen) => void;
+}
+
+// Helper: sort children by booksRead descending
+const sortLeaderboard = (children: Child[]) =>
+  [...children].sort((a, b) => (b.booksRead ?? 0) - (a.booksRead ?? 0));
+
+export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ onNavigate }) => {
+  // Dummy leaderboard data
+  const leaderboard: Child[] = [
+   {
+        id: 1,
+        firstName: "Christiana",
+        lastName: "Okafor",
+        age: 10,
+        parentId: 1,
+        avatar: "/avatars/girl.png",
+        booksRead: 1450,
+        nickName: "Christiana",
+        streakDays: 0,
+        totalReadingTime: 0,
+        readingLevel: "Read-along",
+        favoriteBooks: [],
+        latestBadge: { 
+          id: "1", 
+          title: "Gold", 
+          description: "Gold Badge", 
+          icon: "🏆", 
+          color: "#FFD700", 
+          condition: (child) => true 
+        }
+},
+
+ {
+        id: 2,
+        firstName: "Daniel",
+        lastName: "James",
+        age: 9,
+        parentId: 2,
+        avatar: "/avatars/boy1.png",
+        booksRead: 1390,
+        nickName: "Daniel",
+        streakDays: 0,
+        totalReadingTime: 0,
+        readingLevel: "Independent-reading",
+        favoriteBooks: [],
+        latestBadge: { 
+          id: "1", 
+          title: "Gold", 
+          description: "Gold Badge", 
+          icon: "🏆", 
+          color: "#FFD700", 
+          condition: (child) => true 
+        }
+},
+
+ {
+        id: 3,
+        firstName: "Aisha",
+        lastName: "Buhari",
+        age: 5,
+        parentId: 1,
+        avatar: "/avatars/girl.png",
+        booksRead: 1930,
+        nickName: "Aisha",
+        streakDays: 0,
+        totalReadingTime: 0,
+        readingLevel: "Independent-reading",
+        favoriteBooks: [],
+        latestBadge: { 
+          id: "1", 
+          title: "Gold", 
+          description: "Gold Badge", 
+          icon: "🏆", 
+          color: "#FFD700", 
+          condition: (child) => true 
+        }
+},
+
+ {
+        id: 4,
+        firstName: "Emeka",
+        lastName: "Okafor",
+        age: 10,
+        parentId: 1,
+        avatar: "/avatars/boy2.png",
+        booksRead: 1450,
+        nickName: "Emeka",
+        streakDays: 0,
+        totalReadingTime: 0,
+        readingLevel: "Guided-reading",
+        favoriteBooks: [],
+        latestBadge: { 
+          id: "1", 
+          title: "Gold", 
+          description: "Gold Badge", 
+          icon: "🏆", 
+          color: "#FFD700", 
+          condition: (child) => true 
+        }
+      }
+    ];
+
+  const sortedLeaderboard = sortLeaderboard(leaderboard);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
@@ -49,74 +120,52 @@ export const LeaderboardScreen: React.FC = () => {
 
       {/* Top 3 Readers */}
       <section className="flex justify-around items-end mt-8 px-4">
-        {leaderboard.slice(0, 3).map((user) => (
-          <div key={user.rank} className="flex flex-col items-center">
+        {sortedLeaderboard.slice(0, 3).map((user, index) => (
+          <div key={user.nickName || user.firstName} className="flex flex-col items-center">
             <div
-              className={`relative w-20 h-20 rounded-full shadow-lg border-4 ${
-                user.rank === 1
-                  ? "border-yellow-400"
-                  : user.rank === 2
-                  ? "border-gray-300"
-                  : "border-amber-700"
+              className={`relative w-20 h-20 rounded-full shadow-lg border-4 overflow-hidden ${
+                index === 0 ? "border-yellow-400" : index === 1 ? "border-gray-300" : "border-amber-700"
               }`}
             >
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-full h-full rounded-full object-cover"
-              />
-              <span className="absolute -top-3 -right-3 text-2xl">
-                {user.badge}
-              </span>
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex items-center justify-center bg-gray-200 text-gray-500 font-bold w-full h-full">
+                  {user.firstName.charAt(0)}
+                </div>
+              )}
+              <span className="absolute -top-3 -right-3 text-2xl">{user.latestBadge?.icon ?? "🏅"}</span>
             </div>
-            <p className="mt-2 font-semibold">{user.name}</p>
-            <p className="text-sm text-gray-500">{user.points} pts</p>
+            <p className="mt-2 font-semibold">{user.firstName}</p>
+            <p className="text-sm text-gray-500">{user.booksRead ?? 0} pts</p>
           </div>
         ))}
       </section>
 
-      {/* Leaderboard List */}
+      {/* Remaining Leaderboard */}
       <section className="mt-10 px-6 mb-20">
-        {leaderboard.slice(3).map((user) => (
-          <div
-            key={user.rank}
-            className="flex items-center bg-white rounded-2xl shadow mb-3 p-3"
-          >
-            <span className="text-xl font-bold text-purple-600 w-6 text-center">
-              {user.rank}
-            </span>
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-12 h-12 rounded-full ml-3 object-cover"
-            />
+        {sortedLeaderboard.slice(3).map((user, index) => (
+          <div key={user.nickName || user.firstName} className="flex items-center bg-white rounded-2xl shadow mb-3 p-3">
+            <span className="text-xl font-bold text-purple-600 w-6 text-center">{index + 4}</span>
+            <div className="w-12 h-12 rounded-full overflow-hidden ml-3">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex items-center justify-center bg-gray-200 text-gray-500 font-bold w-full h-full">
+                  {user.firstName.charAt(0)}
+                </div>
+              )}
+            </div>
             <div className="ml-4 flex-1">
-              <p className="font-semibold">{user.name}</p>
-              <p className="text-sm text-gray-500">{user.points} pts</p>
+              <p className="font-semibold">{user.firstName}</p>
+              <p className="text-sm text-gray-500">{user.booksRead ?? 0} pts</p>
             </div>
           </div>
         ))}
       </section>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg py-3 flex justify-around text-gray-600">
-        <button className="flex flex-col items-center">
-          <Home size={24} />
-          <span className="text-xs mt-1">Home</span>
-        </button>
-        <button className="flex flex-col items-center">
-          <Book size={24} />
-          <span className="text-xs mt-1">Books</span>
-        </button>
-        <button className="flex flex-col items-center text-purple-600">
-          <Trophy size={24} />
-          <span className="text-xs mt-1 font-semibold">Leaderboard</span>
-        </button>
-        <button className="flex flex-col items-center">
-          <User size={24} />
-          <span className="text-xs mt-1">Profile</span>
-        </button>
-      </nav>
+      <BottomNavScreen currentScreen="leaderboard" onNavigate={onNavigate} />
     </div>
   );
 };

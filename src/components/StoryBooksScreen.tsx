@@ -131,7 +131,7 @@ export const StoryBooksScreen: React.FC<StoryBooksScreenProps> = ({ onBack, onNa
                 <p className="text-base text-gray-500 mb-4 leading-relaxed">{book.description}</p>
                 <div className="flex space-x-3">
                   <Button
-                    onClick={() => onNavigate("bookDetails", book)}
+                    onClick={() => onNavigate("bookDetails", { book })}
                     className="bg-linear-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-3 rounded-2xl text-base font-semibold shadow-lg min-h-12 active:scale-95"
                   >
                     Read

@@ -108,10 +108,10 @@ export const ChildSelectScreen: React.FC<ChildSelectScreenProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-purple-500 to-purple-600 p-6">
+    <div className="flex flex-col mx-auto w-full items-center justify-center min-h-screen bg-linear-to-b from-purple-500 to-purple-600 p-6">
       {parent && (
         <motion.h1
-          className="text-3xl font-bold text-white mb-10 text-center"
+          className="text-3xl font-bold text-white mb-6 mt-4 text-center"
           initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -120,7 +120,7 @@ export const ChildSelectScreen: React.FC<ChildSelectScreenProps> = ({
       )}
 
       <motion.p
-        className="text-white mb-6 text-center font-bold text-2xl"
+        className="text-white mb-6 top-0 text-center font-bold text-2xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
@@ -129,7 +129,7 @@ export const ChildSelectScreen: React.FC<ChildSelectScreenProps> = ({
       </motion.p>
 
       {/* Child cards */}
-      <div className="grid grid-cols-2 gap-30 w-full max-w-3xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-3xl">
         {childrenWithNames.map((child, index) => (
           <motion.div
             key={child.id}
@@ -139,12 +139,11 @@ export const ChildSelectScreen: React.FC<ChildSelectScreenProps> = ({
           >
             <Card
               onClick={() => onSelectChild(child)}
-              className="cursor-pointer hover:shadow-xl transition transform hover:scale-[1.02] border-purple-300 rounded-2xl bg-purple-200 h-100 w-100"
+              className="cursor-pointer hover:shadow-xl transition transform hover:scale-[1.02] border-purple-300 rounded-2xl bg-purple-200 h-full w-full"
             >
-              <CardContent className="flex items-center gap-6 p-4 mb-30 h-full">
+              <CardContent className="flex items-center gap-6 p-4 mb-6 h-full">
                 {/* Avatar (clickable for update) */}
-                <div
-                  className="w-40 h-40 rounded-2xl overflow-hidden shrink-0 bg-white border-2 border-dashed border-purple-400 cursor-pointer"
+                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shrink-0 bg-white border-2 border-dashed border-purple-400 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation(); // prevent card click
                     handleAvatarClick(child.id);

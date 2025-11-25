@@ -3,11 +3,11 @@ import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { ArrowLeft, Heart, Download, Play } from 'lucide-react';
-import type { Book } from "../types";
+import type { Book, ChildWithUI, Screen, } from "../types";
 
 interface BookDetailsScreenProps {
   book: Book | null;
-  onNavigate: (screen: 'reading' | 'home', book: Book) => void;
+  onNavigate: (screen: Screen, data?: { book?: Book; child?: ChildWithUI }) => void;
   onBack: () => void;
 }
 
@@ -22,14 +22,14 @@ export const BookDetailsScreen: React.FC<BookDetailsScreenProps> = ({ book, onNa
     );
   }
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'Easy': return 'bg-green-100 text-green-700';
-      case 'Medium': return 'bg-yellow-100 text-yellow-700';
-      case 'Hard': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
+  // const getDifficultyColor = (difficulty: Book["difficulty"]) => {
+  //   switch (difficulty) {
+  //     case 'Easy': return 'bg-green-100 text-green-700';
+  //     case 'Medium': return 'bg-yellow-100 text-yellow-700';
+  //     case 'Hard': return 'bg-red-100 text-red-700';
+  //     default: return 'bg-gray-100 text-gray-700';
+  //   }
+  // };
 
    useEffect(() => {
     window.scrollTo(0, 0);
@@ -55,7 +55,7 @@ export const BookDetailsScreen: React.FC<BookDetailsScreenProps> = ({ book, onNa
         <Card className="bg-white rounded-3xl shadow-xl p-8 mb-8 border-2 border-gray-100">
           <div className="text-center mb-8">
             <div className="w-40 h-48 bg-linear-to-br from-blue-200 via-purple-200 to-pink-200 rounded-3xl flex items-center justify-center text-7xl shadow-xl mx-auto mb-6">
-              {book.cover}
+              {book.coverImage}
             </div>
             <div className="flex items-center justify-center space-x-3 mb-3">
               <h2 className="font-bold text-gray-800 text-3xl">{book.title}</h2>
@@ -72,9 +72,9 @@ export const BookDetailsScreen: React.FC<BookDetailsScreenProps> = ({ book, onNa
               </Button>
             </div>
             <p className="text-gray-600 mb-3 text-lg">by {book.author}</p>
-            <Badge className={`text-base px-4 py-2 rounded-full font-medium ${getDifficultyColor(book.difficulty)}`}>
+            {/* <Badge className={`text-base px-4 py-2 rounded-full font-medium ${getDifficultyColor(book.difficulty)}`}>
               {book.difficulty}
-            </Badge>
+            </Badge> */}
           </div>
 
           {/* Description */}
@@ -104,7 +104,7 @@ export const BookDetailsScreen: React.FC<BookDetailsScreenProps> = ({ book, onNa
           {/* Action Buttons */}
           <div className="space-y-4">
             <Button
-              onClick={() => onNavigate('reading', book)}
+              onClick={() => onNavigate('reading', { book })}
               className="w-full py-6 bg-linear-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-3xl shadow-xl transform transition-all duration-200 hover:scale-105 font-semibold text-xl min-h-12 active:scale-95"
             >
               <Play className="w-6 h-6 mr-3" />

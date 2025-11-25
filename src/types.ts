@@ -1,15 +1,15 @@
 // src/types.ts
 
 // -------------------- Screens --------------------
-export type Screen = "welcome" | "home" | "bookDetails" | "profile" | "onboarding" | "login" | "reading" | "childSelect" | "settings" | "books" | "storybooks" | "bottomnav" | "academicbooks";
+export type Screen = "welcome" | "home" | "bookDetails" | "profile" | "onboarding" | "login" | "reading" | "childSelect" | "settings" | "books" | "storybooks" | "bottomnav" | "leaderboard";
 
 // -------------------- Difficulty --------------------
-export type Difficulty = 'Easy' | 'Medium' | 'Hard';
+
 
 // -------------------- Reading Level --------------------  
-export type ReadingLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Super Advanced' | 'Extraordinary';
-export const ReadingLevels: ReadingLevel[] = ['Beginner', 'Intermediate', 'Advanced', 'Super Advanced', 'Extraordinary'];
+export type ReadingLevel = "Read-along" | "Guided-reading" | "Independent-reading";
 
+// export type Difficulty = "Easy" | "Medium" | "Hard";
 // -------------------- Book --------------------
 export type BookPage = {
   text?: string;           // paragraph or story text
@@ -26,9 +26,8 @@ export interface Book {
   coverImage: string;
   description: string;
   content: string;
-  category: string; // e.g. "Storybook", "Comic", "Academic"
   ageRange: [number, number]; // e.g. [3, 4]
-  difficulty: "Easy" | "Medium" | "Hard";
+  level: "read-along" | "guided-reading" | "independent-reading";
 
   // Optional fields
   tags?: string[];
@@ -38,7 +37,7 @@ export interface Book {
 
 
 // -------------------- Child (User) --------------------
-export type Child = {
+export interface Child {
   id: number; 
   firstName: string;
   lastName: string;        // unique ID, e.g., UUID
@@ -57,17 +56,14 @@ export type Child = {
 
   // Preferences & Achievements
   favoriteBooks?: string[];
-  badges?: string[];
+  badges?: Badge[];         // All badges earned
+  latestBadge?: Badge | null;      // Most recent badge earned
   streakDays?: number;
   
   //Meta
   joinedDate?: string;
-  totalBooksRead?: number;
   purchasedBooks?: number[]; 
   booksReadIds?: number[];  
-  paymentInfo?: string;
-  latestBadge?: string; // <-- e.g. "Reading Champion"
-  earnedBadges?: string[]; // <-- ["Reading Champion", "Fast Reader", ...]
 
          // link to parent account
 };
@@ -102,3 +98,15 @@ export type Category = {
   screen: Screen;
   icon: string;
 };
+
+// 🌟 Badge type
+export interface Badge {
+  id: string;
+  title: string;
+  description: string;
+  color: string;
+  icon: string;
+  earnedAt?: string; // timestamp when earned
+  rarity?: "common" | "rare" | "epic" | "legendary"; // optional tier system
+  condition: (child: ChildWithUI) => boolean;
+}

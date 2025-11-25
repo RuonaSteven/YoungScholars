@@ -1,4 +1,56 @@
-node_modules
-.vscode
-dist
-build  
+# Node
+node_modules/
+**/node_modules/
+
+# Vite / build / outputs
+dist/
+build/
+.idea/
+.out/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Envs & secrets
+.env
+.env.local
+.env.*.local
+.env.test
+.env.production
+*.secret
+# supabase or other clients keys (if you have a file containing keys)
+src/lib/supabase.ts
+
+# IDE
+.vscode/
+.vscode/*
+!.vscode/settings.json   # remove this line if you don't want to commit settings
+
+# Tests / coverage
+coverage/
+nyc_output/
+
+# Generated / caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp.* 
+.cache/
+dist-*/ 
+*.map
+
+# Images/assets that are large or generated (if you want to avoid committing)
+# assets/images/generated/
+# src/assets/exports/
+
+# Local data / storage
+*.sqlite
+*.db
+*.db-journal
+
+# Misc
+*.bak
+*.tmp

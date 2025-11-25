@@ -1,10 +1,14 @@
+// src/components/ReadingScreen.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
-import type { Book, Child } from "../types";
+import type { Book, ChildWithUI, Badge } from "../types";
 import { ArrowLeft, Type, Bookmark, Sun, Moon, Volume2, VolumeX, Plus, Minus } from "lucide-react";
 import { getNextReadingLevel } from "../utils/readingLevel";
+import { BadgeCelebrationModal } from "./BadgeCelebrationModal";
+import { updateChildBadges } from "../utils/badges";
+import { showAlert } from "../utils/alertTheme";
 
 interface QuizQuestion {
   question: string;
@@ -14,10 +18,12 @@ interface QuizQuestion {
 
 interface ReadingScreenProps {
   book: Book;
+  child: ChildWithUI;
   onBack: () => void;
+  onBookComplete: (updatedChild: ChildWithUI) => void;
 }
 
-export const ReadingScreen: React.FC<ReadingScreenProps> = ({ book, onBack }) => {
+export const ReadingScreen: React.FC<ReadingScreenProps> = ({ book, child, onBack, onBookComplete }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState<"small" | "medium" | "large">("medium");
@@ -27,21 +33,25 @@ export const ReadingScreen: React.FC<ReadingScreenProps> = ({ book, onBack }) =>
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [quizAnswers, setQuizAnswers] = useState<{ [key: number]: number }>({});
-
+  const [isComplete, setIsComplete] = useState(false);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  const [earnedBadges, setEarnedBadges] = useState<Badge[]>([]);
+  const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0);
+  const [showModal, setShowModal] = useState(false);
 
   const totalPages = book.pages?.length || 1;
   const progress = (currentPage / totalPages) * 100;
   const saveKey = `youngscholars_progress_${book.id}`;
-
-  const splitSentences = (text: string): string[] => text.split(/(?<=[.!?])\s+/);
   const pages = book.pages ?? [];
   const page = pages[currentPage - 1];
-  const pageText = page?.text ?? "";
-  const sentences = splitSentences(pageText);
+  if (!pages.length) return <p>No pages available for this book.</p>;
 
-  // Load progress
+  const pageText = page?.text ?? "";
+  const sentences = pageText.split(/(?<=[.!?])\s+/);
+
+  // --- Load progress ---
   useEffect(() => {
     const raw = localStorage.getItem(saveKey);
     if (raw) {
@@ -51,35 +61,40 @@ export const ReadingScreen: React.FC<ReadingScreenProps> = ({ book, onBack }) =>
         if (parsed.quizAnswers) setQuizAnswers(parsed.quizAnswers);
       } catch {}
     }
-    return () => stopReading();
-
   }, [book.id]);
 
-  // Save progress
+  // --- Save progress ---
   useEffect(() => {
     try {
       localStorage.setItem(saveKey, JSON.stringify({ currentPage, quizAnswers }));
     } catch {}
   }, [currentPage, quizAnswers]);
 
-  // Fetch quiz on last page
+  // --- Fetch quiz on last page (safe) ---
   useEffect(() => {
     if (currentPage === totalPages) {
       fetch(`/api/quiz/${book.id}`)
-        .then(res => res.json())
-        .then((data: QuizQuestion[]) => setQuizQuestions(data))
-        .catch(() => {});
+        .then(res => (res.ok ? res.json() : []))
+        .then((data: QuizQuestion[]) => setQuizQuestions(data || []))
+        .catch(() => setQuizQuestions([]));
     }
   }, [currentPage, totalPages, book.id]);
-  
-   useEffect(() => {
+
+  // --- Scroll to top on mount ---
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // --- Stop reading on unmount / page changes ---
+  useEffect(() => {
+    return () => stopReading();
+  }, [currentPage]);
 
   // --- TEXT TO SPEECH ---
   const startReading = () => {
     if (!("speechSynthesis" in window)) {
-      alert("Text-to-speech not supported on this device.");
+      // replaced normal alert with sweet alert helper
+      showAlert("Text-to-speech unavailable", "Text-to-speech is not supported on this device.", "warning");
       return;
     }
     stopReading();
@@ -90,7 +105,7 @@ export const ReadingScreen: React.FC<ReadingScreenProps> = ({ book, onBack }) =>
     utterance.lang = "en-US";
 
     utterance.onboundary = (event) => {
-      const charIndex = event.charIndex || 0;
+      const charIndex = (event as any).charIndex || 0;
       let acc = 0;
       for (let i = 0; i < sentences.length; i++) {
         acc += sentences[i].length + 1;
@@ -185,26 +200,126 @@ export const ReadingScreen: React.FC<ReadingScreenProps> = ({ book, onBack }) =>
 
   const fontSizeClasses = { small: "text-lg", medium: "text-xl", large: "text-2xl" };
 
-    const handleBookComplete = () => {
-      const activeChild =
-        JSON.parse(localStorage.getItem("youngScholarsActiveChild") || "null");
+  // --- Save completion history helper ---
+  const saveCompletionHistory = (childId: number | undefined) => {
+    try {
+      const raw = localStorage.getItem("youngScholarsReadingHistory");
+      const history = raw ? JSON.parse(raw) : [];
+      history.unshift({
+        bookId: book.id,
+        title: book.title,
+        childId,
+        completedAt: new Date().toISOString(),
+        pages: totalPages
+      });
+      // Keep last 50 entries
+      localStorage.setItem("youngScholarsReadingHistory", JSON.stringify(history.slice(0, 50)));
+    } catch {}
+  };
 
-      if (!activeChild) return;
+  // --- Confetti helper (dynamic import) ---
+  const fireConfetti = async () => {
+    try {
+      const confetti = await import("canvas-confetti");
+      // a few bursts
+      confetti.default({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      setTimeout(() => confetti.default({ particleCount: 80, spread: 90, origin: { y: 0.6 } }), 400);
+      setTimeout(() => confetti.default({ particleCount: 60, spread: 110, origin: { y: 0.6 } }), 900);
+    } catch (e) {
+      // canvas-confetti not installed — silently continue
+      // optionally you can fallback to a CSS animation or do nothing
+    }
+  };
 
-      // Increment books read
-      activeChild.booksRead = (activeChild.booksRead || 0) + 1;
+  // --- HANDLE FINISHING BOOK (LEVEL + BADGES) ---
+  const handleFinishBook = async () => {
+    if (!child) return;
 
-      // Level up if eligible
-      const newLevel = getNextReadingLevel(activeChild.readingLevel || "Beginner");
-      if (newLevel !== activeChild.readingLevel) {
-        activeChild.readingLevel = newLevel;
-        alert(`🎉 Amazing, ${activeChild.firstName}! You are now at the ${newLevel} level!`);
+    // show sweet alert success
+    showAlert(
+      "🎉 Book Completed!",
+      `Great job, ${child.firstName}! You finished "${book.title}"!`,
+      "success"
+    );
+
+    // award badges and bump booksRead
+    const { updatedChild, newBadges } = updateChildBadges({
+      ...child,
+      booksRead: (child.booksRead ?? 0) + 1,
+    });
+
+    // level up
+    const newLevel = getNextReadingLevel(child.readingLevel || "Beginner");
+    if (newLevel !== child.readingLevel) {
+      updatedChild.readingLevel = newLevel;
+      showAlert("🌟 Level Up!", `${child.firstName}, you are now at the ${newLevel} level!`, "success");
+    }
+
+    // store active child and history
+    localStorage.setItem("youngScholarsActiveChild", JSON.stringify(updatedChild));
+    saveCompletionHistory(updatedChild.id);
+
+    // call parent handler
+    onBookComplete(updatedChild);
+
+    // show confetti + badge modal
+    await fireConfetti();
+    if (newBadges.length > 0) {
+      setEarnedBadges(newBadges);
+      setCurrentBadgeIndex(0);
+      setShowModal(true);
+    }
+
+    setIsComplete(true);
+  };
+
+  // --- Restart Book (reset progress and storage) ---
+  const handleRestartBook = () => {
+    stopReading();
+    setCurrentPage(1);
+    setQuizAnswers({});
+    setIsComplete(false);
+    try {
+      // update saved progress
+      localStorage.removeItem(saveKey);
+    } catch {}
+    showAlert("Restarted", `You can start "${book.title}" again.`, "info");
+  };
+
+  // --- Auto advance badge modal ---
+  useEffect(() => {
+    if (!showModal) return;
+    const timer = setTimeout(() => {
+      if (currentBadgeIndex < earnedBadges.length - 1) {
+        setCurrentBadgeIndex((i) => i + 1);
+      } else {
+        setShowModal(false);
+        setEarnedBadges([]);
       }
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [showModal, currentBadgeIndex, earnedBadges]);
 
-      // Save updated child data
-      localStorage.setItem("youngScholarsActiveChild", JSON.stringify(activeChild));
-    };
+  const handleClose = () => {
+    if (currentBadgeIndex < earnedBadges.length - 1) {
+      setCurrentBadgeIndex((i) => i + 1);
+    } else {
+      setShowModal(false);
+      setEarnedBadges([]);
+    }
+  };
 
+  // small robustness for quiz fetch
+  useEffect(() => {
+    if (currentPage === totalPages) {
+      fetch(`/api/quiz/${book.id}`)
+        .then(res => (res.ok ? res.json() : []))
+        .then((data: QuizQuestion[]) => setQuizQuestions(data || []))
+        .catch(() => setQuizQuestions([]));
+    }
+  }, [currentPage, totalPages, book.id]);
+
+  useEffect(() => stopReading, []);
 
   return (
     <div className={`min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-linear-to-b from-amber-50 to-orange-50 text-gray-800"}`}>
@@ -233,8 +348,19 @@ export const ReadingScreen: React.FC<ReadingScreenProps> = ({ book, onBack }) =>
             {isDarkMode ? <Sun /> : <Moon />}
           </Button>
 
-          <Button onClick={() => setIsBookmarked(!isBookmarked)} variant="ghost">
+          <Button onClick={() => { setIsBookmarked(!isBookmarked); showAlert(isBookmarked ? "Removed Bookmark" : "Bookmarked", isBookmarked ? "Bookmark removed" : "This book is bookmarked", "info"); }} variant="ghost">
             <Bookmark className={isBookmarked ? "fill-blue-500 text-blue-500" : ""} />
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button onClick={handleRestartBook} variant="default" className="hidden sm:inline-flex">Restart Book</Button>
+          <Button
+            variant="default"
+            onClick={handleFinishBook}
+            disabled={isComplete}
+          >
+            {isComplete ? "Completed ✅" : "Finish Reading"}
           </Button>
         </div>
       </div>
@@ -279,21 +405,33 @@ export const ReadingScreen: React.FC<ReadingScreenProps> = ({ book, onBack }) =>
           <div className="flex justify-between items-center mt-10">
             <Button onClick={prevPage} disabled={currentPage === 1}>Previous</Button>
             <span>Page {currentPage} of {totalPages}</span>
-            <Button onClick={() => {
-                    if (currentPage === totalPages) {
-                      handleBookComplete();
-                    } else {
-                      nextPage();
-                    }
-                  }}
-                  disabled={currentPage === totalPages && quizQuestions.length > 0}
-                    >
-                  {currentPage === totalPages ? "Finish Book" : "Next"}
-              </Button>
+            <Button
+              onClick={() => {
+                if (currentPage === totalPages) handleFinishBook();
+                else nextPage();
+              }}
+              disabled={
+                currentPage === totalPages &&
+                quizQuestions.length > 0 &&
+                Object.keys(quizAnswers).length < quizQuestions.length
+              }
+            >
+              {currentPage === totalPages ? "Finish Book" : "Next"}
+            </Button>
           </div>
-              {currentPage === totalPages && renderQuiz()}
-                        </div>
-                      </div>
+
+          {currentPage === totalPages && renderQuiz()}
+        </div>
+      </div>
+
+      <BadgeCelebrationModal
+        isOpen={showModal}
+        onClose={handleClose}
+        badge={earnedBadges[currentBadgeIndex] || null}
+        childName={`${child.nickName || child.firstName} ${child.lastName}`}
+        currentIndex={currentBadgeIndex}
+        total={earnedBadges.length}
+      />
 
       {/* Progress */}
       <div className="px-8 py-6 border-t bg-white/80">

@@ -1,122 +1,87 @@
 import React, { useEffect, useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import { WelcomeScreen } from "./components/WelcomeScreen";
-import { HomeScreen } from "./components/HomeScreen";
-import { BookDetailsScreen } from "./components/BookDetailsScreen";
-import { ReadingScreen } from "./components/ReadingScreen";
-import { ProfileScreen } from "./components/ProfileScreen";
-import { OnboardingScreen } from "./components/OnboardingScreen";
 import { LoginScreen } from "./components/LoginScreen";
+import { OnboardingScreen } from "./components/OnboardingScreen";
+import { HomeScreen } from "./components/HomeScreen";
 import { ChildSelectScreen } from "./components/ChildSelectScreen";
+import { BookDetailsScreen } from "./components/BookDetailsScreen";
+import { ReadingScreen } from "./components/ReadingScreen"; 
+import { ProfileScreen } from "./components/ProfileScreen";
 import { StoryBooksScreen } from "./components/StoryBooksScreen";
 import { BottomNavScreen } from "./components/BottomNav";
-import { AcademicsScreen } from "./components/AcademicBooksScreen";
-import type { Book, Parent, Child, ChildWithUI, Screen } from "./types";
+import { SettingsScreen } from "./components/SettingsScreen";
+import { LeaderboardScreen } from "./components/LeaderBoardScreen";
+
+import { ChildWithUI, Parent, Screen, Book } from "./types";
 import { Button } from "./components/ui/button";
 import { showAlert } from "./utils/alertTheme";
-import { SettingsScreen } from "./components/SettingsScreen";
-import { BooksScreen } from "./components/BooksScreen";
 
-// ------------------ TYPES ------------------
+// Create one QueryClient for whole app
+const queryClient = new QueryClient();
 
-// ------------------ MAIN APP ------------------
-export default function App() {
+function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("welcome");
   const [user, setUser] = useState<Parent | null>(null);
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [message, setMessage] = useState("");
   const [selectedChild, setSelectedChild] = useState<ChildWithUI | null>(null);
-  const [books, setBooks] = useState<Book[]>([]); // empty array initially
+  const [books, setBooks] = useState<Book[]>([]);
+  const [currentBook, setCurrentBook] = useState<Book | null>(null);
+  const [childrenList, setChildrenList] = useState<ChildWithUI[]>([]);
 
-  // ------------------ DATA FETCHING ------------------
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/books");
-        const data = await response.json();
-        setBooks(data);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-      }
-    };
+  const navigate = (screen: Screen) => setCurrentScreen(screen);
 
-    fetchBooks();
-    }, []);
-
-
-  // ------------------ SCREEN NAVIGATION ------------------
-  const navigate = (screen: Screen, data: Book | null = null) => {
-    setCurrentScreen(screen);
-    if (data && (screen === "bookDetails" || screen === "reading")) {
-      setSelectedBook(data);
-    }
+  const handleReadBook = (book: Book) => {
+    setCurrentBook(book);
+    navigate("reading");
   };
 
-  
-
-  // ------------------ ONBOARDING COMPLETE ------------------
-const handleOnboardingComplete = (parentData: Parent, childrenData: Child[]) => {
-  setUser(parentData);
-  localStorage.setItem("youngScholarsParent", JSON.stringify(parentData));
-  localStorage.setItem("youngScholarsChildren", JSON.stringify(childrenData));
-  showAlert("Welcome!", "Your account is ready! 🎉", "success");
-  setCurrentScreen("home");
-};
-
-const storedChildren = localStorage.getItem("youngScholarsChildren");
-const childrenFromStorage: ChildWithUI[] = storedChildren
-  ? JSON.parse(storedChildren).map((c: any) => ({
-      ...c,
-      name: `${c.firstName} ${c.lastName}`, // auto-generate name
-    }))
-  : [];
-
-
-const activeChild =
-  childrenFromStorage.length === 1
-    ? childrenFromStorage[0]
-    : childrenFromStorage.find(
-        (c) =>
-          c.id ===
-          JSON.parse(localStorage.getItem("youngScholarsActiveChild") || "{}")
-            .id
-      );
-  const storedParent = localStorage.getItem("youngScholarsParent");
-const parentFromStorage = storedParent ? JSON.parse(storedParent) : null;
-
-
-  const handleLogout = () => {
-    setUser(null);
-    setCurrentScreen("welcome");
+  // ---------- LOGIN ----------
+  const handleLogin = (parentData: Parent) => {
+    setUser(parentData);
+    localStorage.setItem("youngScholarsParent", JSON.stringify(parentData));
+    navigate("home");
   };
 
-  // ------------------ BACKEND TEST ------------------
-  useEffect(() => {
-    // fetch("http://localhost:5000/api/message")
-    //   .then((res) => res.json())
-    //   .then((data) => setMessage(data.message))
-    //   .catch((err) => console.error(err));
-  }, []);
+  // ---------- ONBOARDING ----------
+  const handleOnboardingComplete = (parentData: Parent, childrenData: any[]) => {
+    setUser(parentData);
+    localStorage.setItem("youngScholarsParent", JSON.stringify(parentData));
 
-  useEffect(() => {
-  const storedChildren = localStorage.getItem("youngScholarsChildren");
-  const activeChildStored = localStorage.getItem("youngScholarsActiveChild");
-
-  if (storedChildren) {
-    const children: ChildWithUI[] = JSON.parse(storedChildren).map((c: any) => ({
+    const formattedChildren = childrenData.map((c) => ({
       ...c,
       name: `${c.firstName} ${c.lastName}`,
     }));
 
-    if (activeChildStored) {
-      setSelectedChild(JSON.parse(activeChildStored));
-    } else {
-      setSelectedChild(children[0]);
+    setChildrenList(formattedChildren);
+    localStorage.setItem("youngScholarsChildren", JSON.stringify(formattedChildren));
+
+    if (formattedChildren.length === 1) {
+      setSelectedChild(formattedChildren[0]);
+      localStorage.setItem("youngScholarsActiveChild", JSON.stringify(formattedChildren[0]));
     }
-  }
-}, []);
 
+    navigate("childSelect");
+  };
 
-  // ------------------ SCREEN RENDERING ------------------
+  // ---------- RESTORE CHILDREN ----------
+  useEffect(() => {
+    const savedChildren = localStorage.getItem("youngScholarsChildren");
+    if (savedChildren) setChildrenList(JSON.parse(savedChildren));
+
+    const savedChild = localStorage.getItem("youngScholarsActiveChild");
+    if (savedChild) setSelectedChild(JSON.parse(savedChild));
+  }, []);
+
+  // ---------- LOGOUT ----------
+  const handleLogout = () => {
+    setUser(null);
+    setSelectedChild(null);
+    localStorage.clear();
+    navigate("welcome");
+  };
+
+  // ---------- SCREEN RENDER ----------
   const renderScreen = () => {
     switch (currentScreen) {
       case "welcome":
@@ -130,70 +95,70 @@ const parentFromStorage = storedParent ? JSON.parse(storedParent) : null;
       case "login":
         return (
           <LoginScreen
-            onLoginSuccess={(userData) => {
-              setUser(userData);
-              setCurrentScreen("home");
-            }}
-            onBack={() => setCurrentScreen("welcome")}
+            onLoginSuccess={handleLogin}
+            onBack={() => navigate("welcome")}
+            goToOnboarding={() => navigate("onboarding")}
+            onSignup={() => {}}
+            onForgotPassword={() => {}}
           />
         );
 
       case "onboarding":
         return (
           <OnboardingScreen
-            onComplete={(parentData, childrenData) => {
-        setUser(parentData);
-        localStorage.setItem("youngScholarsParent", JSON.stringify(parentData));
-        localStorage.setItem("youngScholarsChildren", JSON.stringify(childrenData));
-        // showAlert("Welcome!", `Hello, your YoungScholars account is ready! 🎉`, "success");
-
-        setCurrentScreen("childSelect");
-            }}
-            onBack={() => setCurrentScreen("welcome")}
-
+            onComplete={handleOnboardingComplete}
+            onBack={() => navigate("welcome")}
           />
         );
 
-      case "childSelect": 
-      return (
-        <ChildSelectScreen parent={user!} 
-        childrenData={selectedChild ? [selectedChild] : []} 
-        onSelectChild={(child) => { 
-          localStorage.setItem("youngScholarsActiveChild", JSON.stringify(child)); 
-          navigate("home"); 
-        }} 
-        onBack={() => navigate("onboarding")} />
-      );
+      case "childSelect":
+        return selectedChild ? (
+          <ChildSelectScreen
+            parent={user!}
+            childrenData={childrenList}
+            onSelectChild={(child) => {
+              setSelectedChild(child);
+              localStorage.setItem("youngScholarsActiveChild", JSON.stringify(child));
+              navigate("home");
+            }}
+            onBack={() => navigate("onboarding")}
+          />
+        ) : null;
 
-      case "home": 
-      return user && selectedChild ? ( 
-      <HomeScreen child={selectedChild} 
-      books={books} 
-      onRead={setSelectedBook} 
-      onNavigate={navigate} 
-      onSettings={() => navigate("settings")} 
-      onBack={() => navigate("childSelect")} /> 
-    ) : ( 
-    <WelcomeScreen onLogin={() => navigate("login")} onNavigate={navigate} /> );
-
+      case "home":
+        return user && selectedChild ? (
+          <HomeScreen
+            child={selectedChild}
+            books={books}
+            onRead={handleReadBook}
+            onNavigate={navigate}
+            onSettings={() => navigate("settings")}
+          />
+        ) : (
+          <WelcomeScreen onLogin={() => navigate("login")} onNavigate={navigate} />
+        );
 
       case "bookDetails":
-        return (
-          <BookDetailsScreen
-            book={selectedBook}
+        return currentBook ? (
+          <BookDetailsScreen 
+            book={currentBook}
             onNavigate={navigate}
-            onBack={() => setCurrentScreen("home")}
+            onBack={() => navigate("storybooks")} 
           />
-        );
-
-     case "books":
-        return <BooksScreen 
-        onNavigate={navigate}
-        onBack={() => navigate("home")} />;
+        ) : null;
 
       case "reading":
-        return selectedBook ? (
-          <ReadingScreen book={selectedBook} onBack={() => navigate("home")} />
+        return selectedChild && currentBook ? (
+          <ReadingScreen
+            child={selectedChild}
+            book={currentBook}
+            onBack={() => navigate("home")}
+            onBookComplete={(updatedChild: ChildWithUI) => {
+              setSelectedChild(updatedChild);
+              localStorage.setItem("youngScholarsActiveChild", JSON.stringify(updatedChild));
+              showAlert("🎉 Well done!", `You've finished ${currentBook.title}!`);
+            }}
+          />
         ) : (
           <div className="flex flex-col items-center justify-center h-screen text-center">
             <p className="text-xl font-semibold mb-4 text-gray-700">
@@ -211,55 +176,47 @@ const parentFromStorage = storedParent ? JSON.parse(storedParent) : null;
             onLogin={setUser}
             onNavigate={navigate}
             onLogout={handleLogout}
-            onBack={() => setCurrentScreen("home")}
+            onBack={() => navigate("home")}
           />
         );
 
       case "storybooks":
         return (
           <StoryBooksScreen
-            onBack={() => setCurrentScreen("books")}
+            onBack={() => navigate("home")}
             onNavigate={navigate}
           />
         );
 
-      case "academicbooks":
-        return (
-          <AcademicsScreen
-            onBack={() => setCurrentScreen("books")}
-            onNavigate={navigate}
+      case "settings":
+        return selectedChild ? (
+          <SettingsScreen
+            child={selectedChild}
+            childrenList={childrenList}
+            onBack={() => navigate("home")}
+            onNavigate={setCurrentScreen}
           />
-        );
-
-        case 'settings':
-      return (<SettingsScreen onBack={() => setCurrentScreen('profile')} />);
+        ) : null;
 
       default:
-        return (
-          <WelcomeScreen
-            onLogin={() => setCurrentScreen("login")}
-            onNavigate={navigate}
-          />
-        )
-  }
+        return <WelcomeScreen onLogin={() => navigate("login")} onNavigate={navigate} />;
+    }
   };
 
   return (
-    <div className="min-h-screen w-full bg-linear-to-br from-blue-100 via-yellow-50 to-green-100 overflow-x-hidden">
-      <div className="min-h-screen w-full bg-white pb-10">
-        {renderScreen()}
-
-        {/* Optional Backend Test Output */}
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <h3>Backend Connection:</h3>
-          <p>{message}</p>
-        </div>
-        <div className="pb-20 flex flex-col w-full"/> {/* Spacer for bottom nav */}
-        {["home", "books", "profile", "leaderboard"].includes(currentScreen) && (
+    <div className="min-h-screen w-full bg-linear-to-br from-white overflow-x-hidden">
+      {renderScreen()}
+      {["home"].includes(currentScreen) && (
         <BottomNavScreen currentScreen={currentScreen} onNavigate={navigate} />
-        )}
-
-      </div>
+      )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
   );
 }
