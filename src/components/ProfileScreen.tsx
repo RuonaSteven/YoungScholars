@@ -312,6 +312,8 @@ import {
   User,
 } from "lucide-react";
 import { Button } from "./ui/button";
+import { ArrowLeft as ArrowLeftIcon } from "lucide-react";
+import { BottomNavScreen } from "./BottomNav";
 import type { Screen, Parent, Child, Badge } from "../types";
 import { getNextReadingLevel } from "../utils/readingLevel";
 
@@ -514,33 +516,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg py-3 flex justify-around text-gray-600">
-        <button
-          onClick={() => onNavigate("home")}
-          className="flex flex-col items-center hover:text-purple-600"
-        >
-          <Home size={22} />
-          <span className="text-xs mt-1">Home</span>
-        </button>
-        <button
-          onClick={() => onNavigate("books")}
-          className="flex flex-col items-center hover:text-purple-600"
-        >
-          <Book size={22} />
-          <span className="text-xs mt-1">Books</span>
-        </button>
-        <button
-          onClick={() => onNavigate("leaderboard")}
-          className="flex flex-col items-center hover:text-purple-600"
-        >
-          <Trophy size={22} />
-          <span className="text-xs mt-1">Leaderboard</span>
-        </button>
-        <button className="flex flex-col items-center text-purple-600">
-          <User size={22} />
-          <span className="text-xs mt-1 font-semibold">Profile</span>
-        </button>
-      </nav>
+      <BottomNavScreen currentScreen="home" onNavigate={onNavigate} />
     </div>
   );
 };

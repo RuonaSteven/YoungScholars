@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { ArrowLeft } from "lucide-react";
+import { BottomNavScreen } from "./BottomNav";
 import type { Screen, Book, ReadingLevel } from "../types";
 
 interface StoryBooksScreenProps {
@@ -198,6 +199,8 @@ export const StoryBooksScreen: React.FC<StoryBooksScreenProps> = ({
           No books found for this selection.
         </p>
       )}
+    <BottomNavScreen currentScreen="storybooks" onNavigate={onNavigate} />
+
     </div>
   );
 };
