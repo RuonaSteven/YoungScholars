@@ -22,14 +22,12 @@ export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
   const queryClient = useQueryClient();
 
   // Fetch avatar using React Query
-  const { data: fetchedAvatar, isLoading } = useQuery<string, Error>(
-    ["avatar", userId],
-    () => fetchAvatar(userId),
-    {
-      initialData: avatar,
-      refetchOnWindowFocus: false,
-    }
-  );
+  const { data: fetchedAvatar, isLoading } = useQuery<string, Error>({
+  queryKey: ["avatar", userId],
+  queryFn: () => fetchAvatar(userId),
+  initialData: avatar,
+  refetchOnWindowFocus: false,
+});
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

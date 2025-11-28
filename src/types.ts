@@ -20,14 +20,14 @@ export type BookPage = {
 };
 
 export interface Book {
-  id: string;
+  id: string;               // unique ID
   title: string;
   author: string;
   coverImage: string;
   description: string;
   content: string;
   ageRange: [number, number]; // e.g. [3, 4]
-  level: "read-along" | "guided-reading" | "independent-reading";
+  level: ReadingLevel;
 
   // Optional fields
   tags?: string[];
@@ -110,3 +110,19 @@ export interface Badge {
   rarity?: "common" | "rare" | "epic" | "legendary"; // optional tier system
   condition: (child: ChildWithUI) => boolean;
 }
+
+// ----------------------------
+// QUIZ TYPES
+// ----------------------------
+export interface QuizQuestion {
+  id: number;
+  question: string;
+  choices: string[];
+  answerIndex: number; // renamed from answer_index
+}
+
+export interface Quiz {
+  bookId: string;
+  questions: QuizQuestion[];
+}
+

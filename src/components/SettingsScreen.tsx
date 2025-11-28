@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { ChildSelectScreen } from "./ChildSelectScreen";
-import { Child, Badge, Screen } from "../types";
+// src/components/SettingsScreen.tsx
+import React, { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchChild } from "../utils/fetchChild";
+import { Child, Screen } from "../types";
 import { Button } from "./ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -11,20 +13,43 @@ interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
 }
 
-export const SettingsScreen: React.FC<SettingsScreenProps> = ({ child, childrenList, onBack, onNavigate }) => {
+export const SettingsScreen: React.FC<SettingsScreenProps> = ({
+  child,
+  childrenList,
+  onBack,
+  onNavigate,
+}) => {
   const [showReport, setShowReport] = useState(false);
-  const [childData, setChildData] = useState<Child>(child);
 
-  // Ensure joinedDate is always set
+  // Fetch child data live
+  const { data, isLoading, error, refetch } = useQuery<Child>({
+    queryKey: ["child", child.id],
+    queryFn: () => fetchChild(child.id),
+    initialData: child,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Re-fetch child data whenever `child.id` changes
   useEffect(() => {
-    if (!childData.joinedDate) {
-      const now = new Date().toISOString();
-      setChildData((prev) => ({ ...prev, joinedDate: now }));
-      localStorage.setItem("youngScholarsActiveChild", JSON.stringify({ ...childData, joinedDate: now }));
-    }
-  }, []);
+    refetch();
+  }, [child.id, refetch]);
 
-  
+  // Safely handle joinedDate and persist in localStorage
+  const childData = useMemo(() => {
+    if (!data) return child;
+    if (!data.joinedDate) {
+      const now = new Date().toISOString();
+      localStorage.setItem(
+        "youngScholarsActiveChild",
+        JSON.stringify({ ...data, joinedDate: now })
+      );
+      return { ...data, joinedDate: now };
+    }
+    return data;
+  }, [data, child]);
+
+  if (isLoading) return <p className="p-6">Loading child info...</p>;
+  if (error || !childData) return <p className="p-6 text-red-500">Failed to load child data.</p>;
 
   return (
     <div className="p-6 relative">
@@ -34,14 +59,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ child, childrenL
       <Button
         onClick={onBack}
         variant="ghost"
-        className="absolute left-4 top-3 bg-purple-600 text-white font-semibold px-4 py-1 rounded-full shadow-md border-2 border-purple-600 hover:bg-white hover:text-purple-600 transition active:scale-95"
+        className="absolute left-4 top-3 bg-purple-600 text-white font-semibold px-4 py-1 rounded-full shadow-md border-2 border-purple-600 hover:bg-white hover:text-purple-600 transition active:scale-95 flex items-center gap-2"
       >
         <ArrowLeft className="w-7 h-7" />
         Back
       </Button>
 
       <div className="space-y-6 mt-6">
-
         {/* 🎖 Badges & Achievements */}
         <div className="bg-linear-to-br from-purple-600 to-violet-700 text-white rounded-2xl p-5 shadow-lg">
           <h2 className="text-lg font-bold mb-3">🎖 Badges & Achievements</h2>
@@ -103,7 +127,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ child, childrenL
       {/* Full Report Modal */}
       {showReport && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto relative">
             <h2 className="text-xl font-bold mb-4">📋 Full Report: {childData.firstName} {childData.lastName}</h2>
             <p><strong>Nickname:</strong> {childData.nickName}</p>
             <p><strong>Age:</strong> {childData.age}</p>
@@ -112,6 +136,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ child, childrenL
             <p><strong>Total Reading Time:</strong> {childData.totalReadingTime ?? '—'}</p>
             <p><strong>Reading Streak:</strong> {childData.streakDays ?? 0} day(s)</p>
             <p><strong>Badges Earned:</strong> {childData.badges?.length ?? 0}</p>
+
             {childData.badges && childData.badges.length > 0 && (
               <ul className="list-disc list-inside mt-2">
                 {childData.badges.map(b => (
@@ -119,6 +144,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ child, childrenL
                 ))}
               </ul>
             )}
+
             <Button
               className="mt-4 w-full bg-purple-600 text-white font-semibold rounded-xl py-2"
               onClick={() => setShowReport(false)}
@@ -127,15 +153,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ child, childrenL
             </Button>
 
             {childrenList.length > 1 && (
-            <Button
-              onClick={() => onNavigate("childSelect")}
-               variant="ghost"
-                className="absolute center-4 bottom-3 bg-purple-600 text-white font-semibold px-4 py-1 rounded-full shadow-md border-2 border-purple-600 hover:bg-white hover:text-purple-600 transition active:scale-95"
-            >
-              Switch Child
-            </Button>
-          )}
-
+              <Button
+                onClick={() => onNavigate("childSelect")}
+                variant="ghost"
+                className="absolute left-1/2 bottom-3 transform -translate-x-1/2 bg-purple-600 text-white font-semibold px-4 py-1 rounded-full shadow-md border-2 border-purple-600 hover:bg-white hover:text-purple-600 transition active:scale-95"
+              >
+                Switch Child
+              </Button>
+            )}
           </div>
         </div>
       )}
